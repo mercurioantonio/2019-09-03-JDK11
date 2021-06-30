@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import it.polito.tdp.food.model.Adiacenza;
 import it.polito.tdp.food.model.Condiment;
 import it.polito.tdp.food.model.Food;
 import it.polito.tdp.food.model.Portion;
@@ -101,6 +103,58 @@ public class FoodDao {
 			
 			conn.close();
 			return list ;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null ;
+		}
+
+	}
+	
+	
+	public List<String> listAllPortionDisplayName(int c){
+		String sql = "SELECT DISTINCT(p.portion_display_name) "
+				+ "FROM portions p "
+				+ "WHERE p.calories < ? "
+				+ "group BY p.portion_display_name" ;
+		List<String> result = new ArrayList<>() ;
+		try {
+			Connection conn = DBConnect.getConnection() ;
+			PreparedStatement st = conn.prepareStatement(sql) ;
+	        st.setInt(1, c);	
+			ResultSet res = st.executeQuery() ;
+			
+			while(res.next()) {
+				result.add(res.getString("portion_display_name"));
+			}
+			
+			conn.close();
+			return result ;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null ;
+		}
+
+	}
+	
+	public List<Adiacenza> listAllAdiacenze (){
+		String sql = "SELECT p1.portion_display_name AS NAME1 , p2.portion_display_name AS NAME2, COUNT(DISTINCT P1.food_code) AS CNT "
+				+ "FROM portions p1, portions p2 "
+				+ "WHERE p1.food_code = p2.food_code AND p1.portion_display_name != p2.portion_display_name "
+				+ "GROUP BY p1.portion_display_name, p2.portion_display_name" ;
+		List<Adiacenza> result = new ArrayList<>() ;
+		try {
+			Connection conn = DBConnect.getConnection() ;
+			PreparedStatement st = conn.prepareStatement(sql) ;
+			ResultSet res = st.executeQuery() ;
+			
+			while(res.next()) {
+				result.add(new Adiacenza(res.getString("NAME1"), res.getString("NAME2"), res.getInt("CNT")) );
+			}
+			
+			conn.close();
+			return result ;
 
 		} catch (SQLException e) {
 			e.printStackTrace();
